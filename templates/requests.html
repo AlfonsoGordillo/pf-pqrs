@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ t.requests }}{% endblock %}
+{% block nav_req %}active{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-5">
+  <div class="flex items-center justify-between">
+    <div><h1 class="text-xl font-bold text-white">{{ t.requests }}</h1><p class="text-sm text-slate-400 mt-0.5">{{ requests | length }} {{ t.requests | lower }}</p></div>
+  </div>
+
+  <form method="get" action="/requests" class="flex flex-wrap gap-3">
+    <input type="text" name="search" value="{{ search }}" placeholder="{{ t.search_placeholder }}" style="width:240px"/>
+    <select name="type">
+      <option value="">{{ t.all_types }}</option>
+      {% for tp in ['petition','complaint','claim','suggestion'] %}
+      <option value="{{ tp }}" {% if filter_type == tp %}selected{% endif %}>{{ t['tp_' + tp] }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">{{ t.all_statuses }}</option>
+      {% for s in ['open','in_progress','resolved','closed','escalated'] %}
+      <option value="{{ s }}" {% if filter_status == s %}selected{% endif %}>{{ t['st_' + s] }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-primary">{{ t.filter }}</button>
+    {% if filter_type or filter_status or search %}<a href="/requests" class="py-2 px-4 text-slate-400 hover:text-slate-200 text-sm">✕</a>{% endif %}
+  </form>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t.ticket }}</th>
+          <th>{{ t.type }}</th>
+          <th>{{ t.subject }}</th>
+          <th>{{ t.customer }}</th>
+          <th>{{ t.priority }}</th>
+          <th>{{ t.status }}</th>
+          <th>{{ t.date }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+        <tr class="cursor-pointer" onclick="location.href='/requests/{{ r.id }}'">
+          <td><div class="font-mono text-xs text-indigo-400 font-semibold">{{ r.ticket_id }}</div></td>
+          <td><span class="badge badge-{{ r.type }}">{{ t['tp_' + r.type] }}</span></td>
+          <td>
+            <div class="text-slate-200 font-medium">{{ r.subject[:60] }}{% if r.subject|length > 60 %}…{% endif %}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ t['ch_' + r.channel] }} · {{ r.department }}</div>
+          </td>
+          <td>
+            <div class="text-slate-300 text-xs font-medium">{{ r.customer_name }}</div>
+            <div class="text-xs text-slate-500">{{ r.customer_email }}</div>
+          </td>
+          <td><span class="badge badge-{{ r.priority }}">{{ t['pr_' + r.priority] }}</span></td>
+          <td>
+            <span class="badge badge-{{ r.status }}">{{ t['st_' + r.status] }}</span>
+            {% if r.is_escalated %}<div class="text-xs text-red-400 mt-1">⚠ escalated</div>{% endif %}
+          </td>
+          <td class="text-xs text-slate-500">{{ r.created_at.strftime('%b %d') }}<br>{{ r.created_at.strftime('%H:%M') }}</td>
+        </tr>
+        {% endfor %}
+        {% if not requests %}
+        <tr><td colspan="7" class="text-center py-16 text-slate-500">{{ t.no_requests }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

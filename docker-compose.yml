@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  pqrs:
+    build: .
+    ports:
+      - "8003:8003"
+    env_file: .env
+    volumes:
+      - pqrs_data:/app/data
+
+volumes:
+  pqrs_data:

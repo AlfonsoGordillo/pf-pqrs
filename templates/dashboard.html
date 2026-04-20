@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ t.dashboard }}{% endblock %}
+{% block nav_dash %}active{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between">
+    <div><h1 class="text-xl font-bold text-white">{{ t.dashboard }}</h1><p class="text-sm text-slate-400 mt-0.5">Projects Factory PQRS AI</p></div>
+    <a href="/requests" class="btn-primary text-sm">+ {{ t.new_request }}</a>
+  </div>
+
+  <!-- Metrics -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ t.total_requests }}</div>
+      <div class="text-3xl font-bold text-white">{{ total }}</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ t.open_requests }}</div>
+      <div class="text-3xl font-bold" style="color:#60a5fa">{{ open_count }}</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ t.resolved_requests }}</div>
+      <div class="text-3xl font-bold" style="color:#4ade80">{{ resolved_count }}</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ t.escalated }}</div>
+      <div class="text-3xl font-bold" style="color:#f87171">{{ escalated_count }}</div>
+      <div class="text-xs text-slate-500 mt-1">{{ t.avg_resolution }}: {{ avg_hours }}{{ t.hours }}</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-slate-200 mb-4">{{ t.requests_by_type }}</div>
+      <canvas id="typeChart" height="200"></canvas>
+    </div>
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-slate-200 mb-4">{{ t.requests_by_status }}</div>
+      <canvas id="statusChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent requests -->
+  <div class="card">
+    <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:rgba(255,255,255,.06)">
+      <div class="text-sm font-semibold text-slate-200">{{ t.all_requests }}</div>
+      <a href="/requests" class="text-xs text-indigo-400 hover:text-indigo-300">{{ t.requests }} →</a>
+    </div>
+    <table>
+      <thead><tr><th>{{ t.ticket }}</th><th>{{ t.type }}</th><th>{{ t.subject }}</th><th>{{ t.customer }}</th><th>{{ t.priority }}</th><th>{{ t.status }}</th></tr></thead>
+      <tbody>
+        {% for r in recent_requests %}
+        <tr class="cursor-pointer" onclick="location.href='/requests/{{ r.id }}'">
+          <td><div class="font-mono text-xs text-indigo-400">{{ r.ticket_id }}</div></td>
+          <td><span class="badge badge-{{ r.type }}">{{ t['tp_' + r.type] }}</span></td>
+          <td><div class="text-slate-200 max-w-xs truncate">{{ r.subject }}</div></td>
+          <td class="text-slate-400">{{ r.customer_name }}</td>
+          <td><span class="badge badge-{{ r.priority }}">{{ t['pr_' + r.priority] }}</span></td>
+          <td><span class="badge badge-{{ r.status }}">{{ t['st_' + r.status] }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const typeLabels = {{ [t['tp_petition'], t['tp_complaint'], t['tp_claim'], t['tp_suggestion']] | tojson }};
+const typeData = {{ [type_counts['petition'], type_counts['complaint'], type_counts['claim'], type_counts['suggestion']] | tojson }};
+const statusLabels = {{ [t['st_open'], t['st_in_progress'], t['st_resolved'], t['st_closed'], t['st_escalated']] | tojson }};
+const statusData = {{ [status_counts['open'], status_counts['in_progress'], status_counts['resolved'], status_counts['closed'], status_counts['escalated']] | tojson }};
+
+new Chart(document.getElementById('typeChart'), {
+  type: 'doughnut',
+  data: { labels: typeLabels, datasets: [{ data: typeData,
+    backgroundColor: ['rgba(59,130,246,.7)','rgba(239,68,68,.7)','rgba(249,115,22,.7)','rgba(34,197,94,.7)'],
+    borderWidth: 0 }]},
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 }, padding: 16 } } } }
+});
+new Chart(document.getElementById('statusChart'), {
+  type: 'bar',
+  data: { labels: statusLabels, datasets: [{ data: statusData,
+    backgroundColor: ['rgba(59,130,246,.7)','rgba(249,115,22,.7)','rgba(34,197,94,.7)','rgba(100,116,139,.7)','rgba(239,68,68,.7)'],
+    borderRadius: 4 }]},
+  options: { responsive: true, plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+              y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', font: { size: 10 } } } } }
+});
+</script>
+{% endblock %}
