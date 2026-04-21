@@ -2,7 +2,8 @@ import os
 from anthropic import AsyncAnthropic
 from app.models import Request
 
-client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+def get_client() -> AsyncAnthropic:
+    return AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 MODEL = "claude-sonnet-4-6"
 
 
@@ -44,7 +45,7 @@ Proporciona:
 
 Sé conciso y directo."""
 
-    msg = await client.messages.create(
+    msg = await get_client().messages.create(
         model=MODEL,
         max_tokens=600,
         messages=[{"role": "user", "content": prompt}]
@@ -90,7 +91,7 @@ Requisitos:
 - NO uses formato markdown
 - Máximo 3-4 párrafos"""
 
-    msg = await client.messages.create(
+    msg = await get_client().messages.create(
         model=MODEL,
         max_tokens=700,
         messages=[{"role": "user", "content": prompt}]
@@ -142,7 +143,7 @@ Proporciona:
 
 Sé directo y accionable."""
 
-    msg = await client.messages.create(
+    msg = await get_client().messages.create(
         model=MODEL,
         max_tokens=600,
         messages=[{"role": "user", "content": prompt}]
@@ -194,7 +195,7 @@ Incluye:
 
 Texto plano, sin markdown."""
 
-    msg = await client.messages.create(
+    msg = await get_client().messages.create(
         model=MODEL,
         max_tokens=700,
         messages=[{"role": "user", "content": prompt}]
