@@ -46,7 +46,7 @@ async def login_page(request: Request):
     if auth_check(request):
         return RedirectResponse(url="/dashboard", status_code=302)
     lang = get_lang(request)
-    return templates.TemplateResponse("login.html", {"request": request, "t": get_t(lang), "lang": lang})
+    return templates.TemplateResponse(request, "login.html", {"t": get_t(lang), "lang": lang})
 
 
 @app.post("/login")
@@ -55,8 +55,8 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
     user = result.scalar_one_or_none()
     lang = get_lang(request)
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("login.html", {
-            "request": request, "t": get_t(lang), "lang": lang,
+        return templates.TemplateResponse(request, "login.html", {
+            "t": get_t(lang), "lang": lang,
             "error": "Invalid credentials" if lang == "en" else "Credenciales incorrectas"
         })
     response = RedirectResponse(url="/dashboard", status_code=302)
@@ -100,8 +100,8 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     status_counts = {s: sum(1 for r in all_reqs if r.status == s) for s in ["open", "in_progress", "resolved", "closed", "escalated"]}
 
     recent = all_reqs[:8]
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "dashboard.html", {
+        "t": get_t(lang), "lang": lang,
         "total": total, "open_count": open_count, "resolved_count": resolved_count,
         "escalated_count": escalated_count, "avg_hours": avg_hours,
         "type_counts": type_counts, "status_counts": status_counts,
@@ -126,8 +126,8 @@ async def requests_page(request: Request, type: str = None, status: str = None, 
             PqrsRequest.ticket_id.ilike(f"%{search}%")
         )
     reqs = (await db.execute(q)).scalars().all()
-    return templates.TemplateResponse("requests.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "requests.html", {
+        "t": get_t(lang), "lang": lang,
         "requests": reqs, "filter_type": type or "", "filter_status": status or "", "search": search or "",
         "now": datetime.utcnow(),
     })
@@ -144,8 +144,8 @@ async def request_detail(request: Request, req_id: int, db: AsyncSession = Depen
     comments = (await db.execute(
         select(Comment).where(Comment.request_id == req_id).order_by(Comment.created_at)
     )).scalars().all()
-    return templates.TemplateResponse("request_detail.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "request_detail.html", {
+        "t": get_t(lang), "lang": lang,
         "pqrs": pqrs, "comments": comments, "now": datetime.utcnow(),
     })
 
